@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'STACK 4 - Elastic Beanstalk Node.js (Learner Lab Version using LabRole)'
+Description: 'STACK 4 - Elastic Beanstalk Node.js (Learner Lab Version - fixed with LabRole)'
 
 Parameters:
   DBPassword:
@@ -17,7 +17,7 @@ Resources:
       ApplicationName: myapp-backend
       Description: 'Node.js Express Backend — Dashboard API'
       ResourceLifecycleConfig:
-        # Menggunakan LabRole untuk Lifecycle Management
+        # Menggunakan LabRole (Learner Lab tidak bisa create role baru)
         ServiceRole: 'arn:aws:iam::581967380620:role/LabRole'
         VersionLifecycleConfig:
           MaxCountRule:
@@ -65,7 +65,7 @@ Resources:
           OptionName: InstanceType
           Value: t3.micro
 
-        # CRITICAL: Di Learner Lab, gunakan LabInstanceProfile (string, bukan Ref)
+        # Menggunakan profil bawaan Learner Lab
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: IamInstanceProfile
           Value: 'LabInstanceProfile'
@@ -78,19 +78,44 @@ Resources:
         - Namespace: aws:autoscaling:asg
           OptionName: MinSize
           Value: '1'
+
         - Namespace: aws:autoscaling:asg
           OptionName: MaxSize
           Value: '4'
+
+        - Namespace: aws:autoscaling:asg
+          OptionName: Availability Zones
+          Value: Any 2
+
+        - Namespace: aws:autoscaling:trigger
+          OptionName: MeasureName
+          Value: CPUUtilization
+
+        - Namespace: aws:autoscaling:trigger
+          OptionName: Unit
+          Value: Percent
+
+        - Namespace: aws:autoscaling:trigger
+          OptionName: UpperThreshold
+          Value: '70'
+
+        - Namespace: aws:autoscaling:trigger
+          OptionName: LowerThreshold
+          Value: '25'
+
+        - Namespace: aws:autoscaling:trigger
+          OptionName: BreachDuration
+          Value: '5'
 
         # ── Load Balancer ─────────────────────────
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: EnvironmentType
           Value: LoadBalanced
+
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: LoadBalancerType
           Value: application
 
-        # CRITICAL: Gunakan LabRole sebagai Service Role Beanstalk
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: ServiceRole
           Value: 'arn:aws:iam::581967380620:role/LabRole'
@@ -99,6 +124,7 @@ Resources:
         - Namespace: aws:elasticbeanstalk:healthreporting:system
           OptionName: SystemType
           Value: enhanced
+
         - Namespace: aws:elasticbeanstalk:application
           OptionName: Application Healthcheck URL
           Value: /health
@@ -110,4 +136,83 @@ Resources:
         - Namespace: aws:elasticbeanstalk:environment:process:default
           OptionName: Port
           Value: '8080'
-        - Namespace: aws
+        - Namespace: aws:elasticbeanstalk:environment:process:default
+          OptionName: Protocol
+          Value: HTTP
+
+        # ── Rolling Deploy ─────────────────────────
+        - Namespace: aws:elasticbeanstalk:command
+          OptionName: DeploymentPolicy
+          Value: RollingWithAdditionalBatch
+
+        - Namespace: aws:elasticbeanstalk:command
+          OptionName: BatchSizeType
+          Value: Percentage
+
+        - Namespace: aws:elasticbeanstalk:command
+          OptionName: BatchSize
+          Value: '25'
+
+        # ── Environment Variables ─────────────────
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: NODE_ENV
+          Value: production
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: PORT
+          Value: '8080'
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: DB_HOST
+          Value: !ImportValue myapp-DBEndpoint
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: DB_PORT
+          Value: '5432'
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: DB_NAME
+          Value: myappdb
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: DB_USER
+          Value: myappuser
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: DB_PASSWORD
+          Value: !Ref DBPassword
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: S3_BUCKET
+          Value: !Sub 'myapp-storage-${AWS::AccountId}-${AWS::Region}'
+
+        # ── Logs ke CloudWatch ────────────────────
+        - Namespace: aws:elasticbeanstalk:cloudwatch:logs
+          OptionName: StreamLogs
+          Value: 'true'
+
+        - Namespace: aws:elasticbeanstalk:cloudwatch:logs
+          OptionName: RetentionInDays
+          Value: '14'
+
+# ─────────────────────────────────────────────
+# OUTPUTS
+# ─────────────────────────────────────────────
+Outputs:
+  BeanstalkURL:
+    Description: URL Elastic Beanstalk Environment
+    Value: !Sub 'http://${BeanstalkEnvironment.EndpointURL}'
+    Export:
+      Name: myapp-BeanstalkURL
+
+  BeanstalkAppName:
+    Description: Nama Aplikasi Beanstalk
+    Value: !Ref BeanstalkApp
+    Export:
+      Name: myapp-BeanstalkAppName
+
+  BeanstalkEnvName:
+    Description: Nama Environment Beanstalk
+    Value: myapp-backend-env
+    Export:
+      Name: myapp-BeanstalkEnvName

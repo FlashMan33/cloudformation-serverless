@@ -3,17 +3,17 @@ frontend:
   phases:
     preBuild:
       commands:
-        # Pindah ke folder tempat package.json berada
+        # Masuk ke folder aplikasi kamu yang berlapis
         - cd cloudform_aws_practice-main/frontend
         - npm install
     build:
       commands:
         - npm run build
   artifacts:
-    # Lokasi hasil build relatif terhadap folder frontend
-    baseDirectory: frontend/dist
+    # Arahkan ke folder dist di dalam subfolder
+    baseDirectory: cloudform_aws_practice-main/frontend/dist
     files:
       - '**/*'
   cache:
     paths:
-      - node_modules/**/*
+      - cloudform_aws_practice-main/frontend/node_modules/**/*

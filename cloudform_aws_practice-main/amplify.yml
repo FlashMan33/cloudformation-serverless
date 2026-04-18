@@ -4,7 +4,7 @@ frontend:
     preBuild:
       commands:
         # Pindah ke folder tempat package.json berada
-        - cd frontend
+        - cd cloudform_aws_practice-main/frontend
         - npm install
     build:
       commands:

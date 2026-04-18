@@ -23,38 +23,6 @@ jobs:
           aws-region: us-east-1
 
       # ─────────────────────────────
-      # 01 - VPC
-      # ─────────────────────────────
-      - name: Deploy VPC Stack
-        run: |
-          aws cloudformation deploy \
-            --template-file cloudformation/01-vpc.yaml \
-            --stack-name myapp-vpc \
-            --capabilities CAPABILITY_NAMED_IAM
-
-      # ─────────────────────────────
-      # 02 - RDS
-      # ─────────────────────────────
-      - name: Deploy RDS Stack
-        run: |
-          aws cloudformation deploy \
-            --template-file cloudformation/04-beanstalk.yaml \
-            --stack-name myapp-beanstalk \
-            --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changeset
-
-      # ─────────────────────────────
-      # 03 - Storage
-      # ─────────────────────────────
-      - name: Deploy Storage Stack
-        run: |
-          aws cloudformation deploy \
-            --template-file cloudformation/03-storage.yaml \
-            --stack-name myapp-storage \
-            --capabilities CAPABILITY_NAMED_IAM
-
-      # ─────────────────────────────
       # 04 - Beanstalk
       # ─────────────────────────────
       - name: Deploy Beanstalk Stack
@@ -63,24 +31,4 @@ jobs:
             --template-file cloudformation/04-beanstalk.yaml \
             --stack-name myapp-beanstalk \
             --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
-            --capabilities CAPABILITY_NAMED_IAM
-
-      # ─────────────────────────────
-      # 05 - Lambda
-      # ─────────────────────────────
-      - name: Deploy Lambda Stack
-        run: |
-          aws cloudformation deploy \
-            --template-file cloudformation/05-lambda.yaml \
-            --stack-name myapp-lambda \
-            --capabilities CAPABILITY_NAMED_IAM
-
-      # ─────────────────────────────
-      # 06 - API Gateway
-      # ─────────────────────────────
-      - name: Deploy API Gateway Stack
-        run: |
-          aws cloudformation deploy \
-            --template-file cloudformation/06-apigateway.yaml \
-            --stack-name myapp-apigateway \
             --capabilities CAPABILITY_NAMED_IAM

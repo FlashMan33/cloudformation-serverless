@@ -28,7 +28,7 @@ jobs:
       - name: Deploy VPC Stack
         run: |
           aws cloudformation deploy \
-            --template-file cloudform_aws_practice-main/cloudformation/01-vpc.yaml \
+            --template-file cloudformation/01-vpc.yaml \
             --stack-name myapp-vpc \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
@@ -39,7 +39,7 @@ jobs:
       - name: Deploy RDS Stack
         run: |
           aws cloudformation deploy \
-            --template-file cloudform_aws_practice-main/cloudformation/02-rds.yaml \
+            --template-file cloudformation/02-rds.yaml \
             --stack-name myapp-rds \
             --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
             --capabilities CAPABILITY_NAMED_IAM \
@@ -51,7 +51,7 @@ jobs:
       - name: Deploy Storage Stack
         run: |
           aws cloudformation deploy \
-            --template-file cloudform_aws_practice-main/cloudformation/03-storage.yaml \
+            --template-file cloudformation/03-storage.yaml \
             --stack-name myapp-storage \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
@@ -62,7 +62,7 @@ jobs:
       - name: Deploy Beanstalk Stack
         run: |
           aws cloudformation deploy \
-            --template-file cloudform_aws_practice-main/cloudformation/04-beanstalk.yaml \
+            --template-file cloudformation/04-beanstalk.yaml \
             --stack-name myapp-beanstalk \
             --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
 
@@ -72,7 +72,7 @@ jobs:
       - name: Deploy Lambda Stack
         run: |
           aws cloudformation deploy \
-            --template-file cloudform_aws_practice-main/cloudformation/05-lambda.yaml \
+            --template-file cloudformation/05-lambda.yaml \
             --stack-name myapp-lambda \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
@@ -83,7 +83,7 @@ jobs:
       - name: Deploy API Gateway Stack
         run: |
           aws cloudformation deploy \
-            --template-file cloudform_aws_practice-main/cloudformation/06-apigateway.yaml \
+            --template-file cloudformation/06-apigateway.yaml \
             --stack-name myapp-apigateway \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset

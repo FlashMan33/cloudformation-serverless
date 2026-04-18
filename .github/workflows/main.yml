@@ -87,3 +87,19 @@ jobs:
             --stack-name myapp-apigateway \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
+
+      # ─────────────────────────────
+      # 07 - Amplify Frontend Deployment
+      # ─────────────────────────────
+      - name: Trigger Amplify Deployment
+        run: |
+          echo "Starting deployment for Amplify App ID: ${{ secrets.AMPLIFY_APP_ID }}"
+          
+          # Memerintahkan Amplify untuk menarik kode terbaru dari GitHub dan mulai Build
+          aws amplify start-job \
+            --app-id ${{ secrets.AMPLIFY_APP_ID }} \
+            --branch-name main \
+            --job-type RELEASE
+        env:
+          # Step ini menggunakan credentials yang sudah di-configure di atas
+          AWS_REGION: us-east-1

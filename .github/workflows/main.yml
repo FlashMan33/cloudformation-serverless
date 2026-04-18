@@ -28,7 +28,7 @@ jobs:
       - name: Deploy Beanstalk Stack
         run: |
           aws cloudformation deploy \
-            --template-file cloudformation/04-beanstalk.yaml \
+            --template-file cloudform_aws_practice-main/cloudformation/04-beanstalk.yaml \
             --stack-name myapp-beanstalk \
             --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
             --capabilities CAPABILITY_NAMED_IAM

@@ -1,19 +1,23 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        # Masuk ke folder aplikasi kamu yang berlapis
-        - cd cloudform_aws_practice-main/frontend
-        - npm install
-    build:
-      commands:
-        - npm run build
-  artifacts:
-    # Arahkan ke folder dist di dalam subfolder
-    baseDirectory: cloudform_aws_practice-main/frontend/dist
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - cloudform_aws_practice-main/frontend/node_modules/**/*
+applications:
+  - appRoot: frontend
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - node --version
+            - npm --version
+            - npm ci
+        build:
+          commands:
+            - echo "Setting environment variables..."
+            - echo "VITE_API_URL=$VITE_API_URL" > .env
+            - npm run build
+            - echo "Build complete!"
+      artifacts:
+        baseDirectory: dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*

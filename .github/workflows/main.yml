@@ -1,0 +1,84 @@
+name: Deploy Infrastructure (US East 1)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # ─────────────────────────────
+      # 01 - VPC
+      # ─────────────────────────────
+      - name: Deploy VPC Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file cloudformation/01-vpc.yaml \
+            --stack-name myapp-vpc \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      # ─────────────────────────────
+      # 02 - RDS
+      # ─────────────────────────────
+      - name: Deploy RDS Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file cloudformation/02-rds.yaml \
+            --stack-name myapp-rds \
+            --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      # ─────────────────────────────
+      # 03 - Storage
+      # ─────────────────────────────
+      - name: Deploy Storage Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file cloudformation/03-storage.yaml \
+            --stack-name myapp-storage \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      # ─────────────────────────────
+      # 04 - Beanstalk
+      # ─────────────────────────────
+      - name: Deploy Beanstalk Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file cloudformation/04-beanstalk.yaml \
+            --stack-name myapp-beanstalk \
+            --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      # ─────────────────────────────
+      # 05 - Lambda
+      # ─────────────────────────────
+      - name: Deploy Lambda Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file cloudformation/05-lambda.yaml \
+            --stack-name myapp-lambda \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      # ─────────────────────────────
+      # 06 - API Gateway
+      # ─────────────────────────────
+      - name: Deploy API Gateway Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file cloudformation/06-apigateway.yaml \
+            --stack-name myapp-apigateway \
+            --capabilities CAPABILITY_NAMED_IAM

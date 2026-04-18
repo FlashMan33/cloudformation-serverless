@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'STACK 4 - Elastic Beanstalk Node.js (Learner Lab Compatible)'
+Description: 'STACK 4 - Elastic Beanstalk Node.js (Learner Lab Compatible Fixed)'
 
 Parameters:
   DBPassword:
@@ -9,29 +9,27 @@ Parameters:
 Resources:
 
   # ─────────────────────────────────────────────
-  # ELASTIC BEANSTALK APPLICATION
+  # APPLICATION
   # ─────────────────────────────────────────────
   BeanstalkApp:
     Type: AWS::ElasticBeanstalk::Application
     Properties:
       ApplicationName: myapp-backend
-      Description: 'Node.js Express Backend'
+      Description: Node.js Backend
 
   # ─────────────────────────────────────────────
-  # ELASTIC BEANSTALK ENVIRONMENT
+  # ENVIRONMENT
   # ─────────────────────────────────────────────
   BeanstalkEnvironment:
     Type: AWS::ElasticBeanstalk::Environment
     Properties:
       ApplicationName: !Ref BeanstalkApp
       EnvironmentName: myapp-backend-env
-      Description: 'Production Environment Node.js'
-
       SolutionStackName: '64bit Amazon Linux 2023 v6.10.1 running Node.js 20'
 
       OptionSettings:
 
-        # ── VPC ─────────────────────────────
+        # ── VPC CONFIG ─────────────────────
         - Namespace: aws:ec2:vpc
           OptionName: VPCId
           Value: !ImportValue myapp-VpcId
@@ -40,8 +38,8 @@ Resources:
           OptionName: Subnets
           Value: !Join
             - ','
-            - - !ImportValue myapp-PrivateSubnet1Id
-              - !ImportValue myapp-PrivateSubnet2Id
+            - - !ImportValue myapp-PublicSubnet1Id
+              - !ImportValue myapp-PublicSubnet2Id
 
         - Namespace: aws:ec2:vpc
           OptionName: ELBSubnets
@@ -59,7 +57,7 @@ Resources:
           OptionName: InstanceType
           Value: t3.micro
 
-        # 🔥 WAJIB: pakai LabInstanceProfile
+        # 🔥 WAJIB DI LEARNER LAB
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: IamInstanceProfile
           Value: LabInstanceProfile
@@ -68,7 +66,7 @@ Resources:
           OptionName: SecurityGroups
           Value: !ImportValue myapp-BeanstalkSGId
 
-        # ── AUTO SCALING ───────────────────
+        # ── SCALING ────────────────────────
         - Namespace: aws:autoscaling:asg
           OptionName: MinSize
           Value: '1'
@@ -82,15 +80,12 @@ Resources:
           OptionName: EnvironmentType
           Value: LoadBalanced
 
-        # ── LOAD BALANCER ──────────────────
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: LoadBalancerType
           Value: application
 
-        # 🔥 WAJIB: pakai LabRole ARN
-        - Namespace: aws:elasticbeanstalk:environment
-          OptionName: ServiceRole
-          Value: arn:aws:iam::581967380620:role/LabRole
+        # ❌ JANGAN PAKAI SERVICE ROLE ARN DI SINI
+        # (biarkan AWS default handling)
 
         # ── HEALTH CHECK ───────────────────
         - Namespace: aws:elasticbeanstalk:healthreporting:system
@@ -137,7 +132,6 @@ Resources:
 
 Outputs:
   BeanstalkURL:
-    Description: URL Beanstalk
     Value: !Sub 'http://${BeanstalkEnvironment.EndpointURL}'
     Export:
       Name: myapp-BeanstalkURL

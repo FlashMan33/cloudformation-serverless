@@ -38,17 +38,11 @@ Resources:
 
         - Namespace: aws:ec2:vpc
           OptionName: Subnets
-          Value: !Join
-            - ','
-            - - !ImportValue myapp-PublicSubnet1Id
-              - !ImportValue myapp-PublicSubnet2Id
+          Value: !Join [",", [!ImportValue myapp-PublicSubnet1Id, !ImportValue myapp-PublicSubnet2Id]]
 
         - Namespace: aws:ec2:vpc
           OptionName: ELBSubnets
-          Value: !Join
-            - ','
-            - - !ImportValue myapp-PublicSubnet1Id
-              - !ImportValue myapp-PublicSubnet2Id
+          Value: !Join [",", [!ImportValue myapp-PublicSubnet1Id, !ImportValue myapp-PublicSubnet2Id]]
 
         - Namespace: aws:ec2:vpc
           OptionName: ELBScheme

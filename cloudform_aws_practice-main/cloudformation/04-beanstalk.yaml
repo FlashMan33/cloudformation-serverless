@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'STACK 4 - Elastic Beanstalk Node.js (Learner Lab Version - Sync with Exports)'
+Description: 'STACK 4 - Elastic Beanstalk Node.js (Learner Lab Version - FIX MINIMAL)'
 
 Parameters:
   DBPassword:
@@ -8,25 +8,19 @@ Parameters:
 
 Resources:
 
-  # ─────────────────────────────────────────────
-  # ELASTIC BEANSTALK APPLICATION
-  # ─────────────────────────────────────────────
   BeanstalkApp:
     Type: AWS::ElasticBeanstalk::Application
     Properties:
       ApplicationName: myapp-backend
       Description: 'Node.js Express Backend — Dashboard API'
       ResourceLifecycleConfig:
-        ServiceRole: 'arn:aws:iam::581967380620:role/LabRole'
+        ServiceRole: arn:aws:iam::581967380620:role/LabRole
         VersionLifecycleConfig:
           MaxCountRule:
             Enabled: true
             MaxCount: 5
             DeleteSourceFromS3: true
 
-  # ─────────────────────────────────────────────
-  # ELASTIC BEANSTALK ENVIRONMENT
-  # ─────────────────────────────────────────────
   BeanstalkEnvironment:
     Type: AWS::ElasticBeanstalk::Environment
     Properties:
@@ -34,9 +28,10 @@ Resources:
       EnvironmentName: myapp-backend-env
       Description: 'Production Environment — Node.js 20 + ALB + Auto Scaling'
       SolutionStackName: '64bit Amazon Linux 2023 v6.10.1 running Node.js 20'
+
       OptionSettings:
 
-        # ── VPC & Subnet (Sesuai Export) ──────────
+        # ── VPC ─────────────────────────────
         - Namespace: aws:ec2:vpc
           OptionName: VPCId
           Value: !ImportValue myapp-VpcId
@@ -45,8 +40,8 @@ Resources:
           OptionName: Subnets
           Value: !Join
             - ','
-            - - !ImportValue myapp-PrivateSubnet1Id
-              - !ImportValue myapp-PrivateSubnet2Id
+            - - !ImportValue myapp-PublicSubnet1Id
+              - !ImportValue myapp-PublicSubnet2Id
 
         - Namespace: aws:ec2:vpc
           OptionName: ELBSubnets
@@ -59,20 +54,21 @@ Resources:
           OptionName: ELBScheme
           Value: public
 
-        # ── Instance Type & IAM ────────────────────
+        # ── INSTANCE ───────────────────────
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: InstanceType
           Value: t3.micro
 
+        # 🔥 FIX: pakai LabRole (BUKAN string bebas)
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: IamInstanceProfile
-          Value: 'LabInstanceProfile'
+          Value: LabRole
 
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: SecurityGroups
           Value: !ImportValue myapp-BeanstalkSGId
 
-        # ── Auto Scaling ──────────────────────────
+        # ── AUTO SCALING ───────────────────
         - Namespace: aws:autoscaling:asg
           OptionName: MinSize
           Value: '1'
@@ -80,41 +76,60 @@ Resources:
           OptionName: MaxSize
           Value: '4'
 
-        # ── Load Balancer ─────────────────────────
+        # ── ENV TYPE ───────────────────────
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: EnvironmentType
           Value: LoadBalanced
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: LoadBalancerType
           Value: application
-        - Namespace: aws:elasticbeanstalk:environment
-          OptionName: ServiceRole
-          Value: 'arn:aws:iam::581967380620:role/LabRole'
 
-        # ── Health Check ──────────────────────────
+        # ❌ DIHAPUS: ServiceRole (biar AWS handle sendiri)
+
+        # ── HEALTH CHECK ───────────────────
         - Namespace: aws:elasticbeanstalk:healthreporting:system
           OptionName: SystemType
           Value: enhanced
 
-        # ── Environment Variables (CRITICAL FIX) ──
+        # ── APP PORT ───────────────────────
+        - Namespace: aws:elasticbeanstalk:environment:process:default
+          OptionName: Port
+          Value: '8080'
+        - Namespace: aws:elasticbeanstalk:environment:process:default
+          OptionName: HealthCheckPath
+          Value: /health
+
+        # ── ENV VARIABLES ──────────────────
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: NODE_ENV
           Value: production
+
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: PORT
           Value: '8080'
+
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: DB_HOST
           Value: !ImportValue myapp-DBEndpoint
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: DB_PORT
+          Value: '5432'
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: DB_NAME
+          Value: myappdb
+
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: DB_USER
+          Value: myappuser
+
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: DB_PASSWORD
           Value: !Ref DBPassword
-        - Namespace: aws:elasticbeanstalk:application:environment
-          OptionName: S3_BUCKET
-          # DIUBAH: Gunakan ImportValue, bukan Sub manual
-          Value: !ImportValue myapp-AppStorageBucketName
 
-        # ── Logs ──────────────────────────────────
-        - Namespace: aws:elasticbeanstalk:cloudwatch:logs
-          OptionName: StreamLogs
-          Value: 'true'
+Outputs:
+  BeanstalkURL:
+    Value: !Sub 'http://${BeanstalkEnvironment.EndpointURL}'
+    Export:
+      Name: myapp-BeanstalkURL

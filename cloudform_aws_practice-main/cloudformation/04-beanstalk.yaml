@@ -184,7 +184,7 @@ Resources:
 
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: S3_BUCKET
-          Value: !Sub 'myapp-storage-${AWS::AccountId}-${AWS::Region}'
+          Value: !ImportValue myapp-AppStorageBucketName
 
         # ── Logs ke CloudWatch ────────────────────
         - Namespace: aws:elasticbeanstalk:cloudwatch:logs

@@ -38,10 +38,11 @@ jobs:
       - name: Deploy RDS Stack
         run: |
           aws cloudformation deploy \
-            --template-file cloudformation/02-rds.yaml \
-            --stack-name myapp-rds \
+            --template-file cloudformation/04-beanstalk.yaml \
+            --stack-name myapp-beanstalk \
             --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
-            --capabilities CAPABILITY_NAMED_IAM
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
 
       # ─────────────────────────────
       # 03 - Storage

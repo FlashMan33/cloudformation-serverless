@@ -1,23 +1,19 @@
 version: 1
-applications:
-  - appRoot: frontend
-    frontend:
-      phases:
-        preBuild:
-          commands:
-            - node --version
-            - npm --version
-            - npm ci
-        build:
-          commands:
-            - echo "Setting environment variables..."
-            - echo "VITE_API_URL=$VITE_API_URL" > .env
-            - npm run build
-            - echo "Build complete!"
-      artifacts:
-        baseDirectory: dist
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Pindah ke folder tempat package.json berada
+        - cd frontend
+        - npm install
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    # Lokasi hasil build relatif terhadap folder frontend
+    baseDirectory: frontend/dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
